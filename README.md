@@ -15,4 +15,5 @@
 * 当更新了Pytorch之后，可能会遇到一些dll缺失的问题，这时请尝试uninstall numpy, matplotlib, scipy, scikit-learn，然后install
 * 训练要求的硬件比较高，需要一个显卡，显存要求大于8G，所以笔记本应该很难带起来，建议到网上购买GPU算力，如矩池云，或者Featurize
 * 如果只想快速得到结果的话，那么可以将epoch改为1，结果如下<br>
+
 ![结果](https://github.com/AIlizz/NLP_Text_Cla_Datawhale/blob/main/NLP_Text_Cla_Epoch_1.PNG）
