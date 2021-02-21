@@ -36,6 +36,81 @@
 |- utils.py # 工具<br>
 
 ## generate_data的解析
+```python
+# 导入库
+import json
+from collections import defaultdict
+from math import log
+
+# 定义将数据分开
+def split_dataset(dev_data_cnt=5000):
+    '''
+    dev_data_cnts是dev数据集的数目
+    '''
+    pass
+                            
+def print_one_data(path, name, print_content=False):
+    '''
+    打开文件，用json读入，打印文本有多少行
+    '''
+    pass
+
+def generate_data():
+    '''
+    
+    '''
+    label_set = dict()
+    label_cnt_set = dict()
+    for e in ['TNEWS', 'OCNLI', 'OCEMOTION']:
+        #统计每个数据集的total.csv中的所有的label，放在label_set
+        #统计每个数据集的total.csv中的所有的{label：label出现的次数}，放在label_cnt_set
+    for k in label_set:
+        label_set[k] = sorted(list(label_set[k])) # 对label进行排序
+    for k, v in label_set.items(): # 打印
+        print(k, v)
+    with open('./tianchi_datasets/label.json', 'w',encoding='utf-8') as fw: # 把label_set写到labe.json中
+        fw.write(json.dumps(label_set))
+    label_weight_set = dict()
+    for k in label_set: # 计算每个数据集中的每个label的权重，权重计算公式log(total_weight / e)，出现的越少，权重越大
+        label_weight_set[k] = [label_cnt_set[k][e] for e in label_set[k]]
+        total_weight = sum(label_weight_set[k])
+        label_weight_set[k] = [log(total_weight / e) for e in label_weight_set[k]]
+    for k, v in label_weight_set.items(): # 打印
+        print(k, v)
+    with open('./tianchi_datasets/label_weights.json', 'w',encoding='utf-8') as fw: # 将权重label_weight_set写到label_weights.json中
+        fw.write(json.dumps(label_weight_set))
+    
+    for e in ['TNEWS', 'OCNLI', 'OCEMOTION']:
+        for name in ['dev', 'train']:
+            with open('./tianchi_datasets/' + e + '/' + name + '.csv',encoding='utf-8') as fr:
+                with open('./tianchi_datasets/' + e + '/' + name + '.json', 'w',encoding='utf-8') as fw:
+                    json_dict = dict()
+                    for line in fr:
+                        tmp_list = line.strip().split('\t')
+                        json_dict[tmp_list[0]] = dict()
+                        json_dict[tmp_list[0]]['s1'] = tmp_list[1]
+                        if e == 'OCNLI':
+                            json_dict[tmp_list[0]]['s2'] = tmp_list[2]
+                            json_dict[tmp_list[0]]['label'] = tmp_list[3]
+                        else:
+                            json_dict[tmp_list[0]]['label'] = tmp_list[2]
+                    fw.write(json.dumps(json_dict))
+    
+    for e in ['TNEWS', 'OCNLI', 'OCEMOTION']:
+        for name in ['dev', 'train']:
+            cur_path = './tianchi_datasets/' + e + '/' + name + '.json'
+            data_name = e + '_' + name
+            print_one_data(cur_path, data_name)
+            
+    print_one_data('./tianchi_datasets/label.json', 'label_set')
+    
+if __name__ == '__main__':
+    print('-------------------------------start-----------------------------------')
+    split_dataset(dev_data_cnt=3000)
+    generate_data()
+    print('-------------------------------finish-----------------------------------')
+```
+
 
 ## train的解析
 
