@@ -382,21 +382,26 @@ class Data_generator():
             self.ocnli_data['s1'].append(v['s1'])
             self.ocnli_data['s2'].append(v['s2'])
             self.ocnli_data['label'].append(self.label2idx['OCNLI'][v['label']])
-        # 将ocemotion_data的数据转化为字典self.ocnli_data{'s1':[],'s2':[],'label':[]}
+        # 将ocemotion_data的数据转化为字典self.ocemotion_data{'s1':[],'label':[]}
         self.ocemotion_data = dict()
         self.ocemotion_data['s1'] = []
         self.ocemotion_data['label'] = []
         for k, v in ocemotion_dict.items():
             self.ocemotion_data['s1'].append(v['s1'])
             self.ocemotion_data['label'].append(self.label2idx['OCEMOTION'][v['label']])
+        # 将tnews_data的数据转化为字典self.tnews_data{'s1':[],'label':[]}
         self.tnews_data = dict()
         self.tnews_data['s1'] = []
         self.tnews_data['label'] = []
         for k, v in tnews_dict.items():
             self.tnews_data['s1'].append(v['s1'])
             self.tnews_data['label'].append(self.label2idx['TNEWS'][v['label']])
+        # 构建self.ocnli_ids，self.ocemotion_ids，self.tnews_ids三个list, 分别包含0到各个数据集长度-1的整数，并已打乱
         self.reset()
     def reset(self):
+        '''
+        构建self.ocnli_ids，self.ocemotion_ids，self.tnews_ids三个list, 分别包含0到各个数据集长度-1的整数，并已打乱
+        '''
         self.ocnli_ids = list(range(len(self.ocnli_data['s1'])))
         self.ocemotion_ids = list(range(len(self.ocemotion_data['s1'])))
         self.tnews_ids = list(range(len(self.tnews_data['s1'])))
@@ -404,10 +409,14 @@ class Data_generator():
         random.shuffle(self.ocemotion_ids)
         random.shuffle(self.tnews_ids)
     def get_next_batch(self, batchSize=64):
+        '''
+        从数据中取出next_batch
+        '''
         ocnli_len = len(self.ocnli_ids)
         ocemotion_len = len(self.ocemotion_ids)
         tnews_len = len(self.tnews_ids)
         total_len = ocnli_len + ocemotion_len + tnews_len
+        
         if total_len == 0:
             return None
         elif total_len > batchSize:
@@ -480,6 +489,9 @@ class Data_generator():
         return res
 
     def _get_max_total_len(self, ocnli_cur, ocemotion_cur, tnews_cur):
+        '''
+        找到该batch语料中最大的长度返回，但是当长度超过self.max_len最大的时候，可以用self.max_len将其截断
+        '''
         res = 1
         for idx in ocnli_cur:
             res = max(res, 3 + len(self.ocnli_data['s1'][idx]) + len(self.ocnli_data['s2'][idx]))
