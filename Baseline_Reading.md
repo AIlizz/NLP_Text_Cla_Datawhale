@@ -396,11 +396,11 @@ class Data_generator():
         for k, v in tnews_dict.items():
             self.tnews_data['s1'].append(v['s1'])
             self.tnews_data['label'].append(self.label2idx['TNEWS'][v['label']])
-        # 构建self.ocnli_ids，self.ocemotion_ids，self.tnews_ids三个list, 分别包含0到各个数据集长度-1的整数，并已打乱
+        # 构建self.ocnli_ids，self.ocemotion_ids，self.tnews_ids三个list, 分别包含0到各个数据集长度-1的整数，并已打乱，方便后续取用数据
         self.reset()
     def reset(self):
         '''
-        构建self.ocnli_ids，self.ocemotion_ids，self.tnews_ids三个list, 分别包含0到各个数据集长度-1的整数，并已打乱
+        构建self.ocnli_ids，self.ocemotion_ids，self.tnews_ids三个list, 分别包含0到各个数据集长度-1的整数，并已打乱，方便后续取用数据
         '''
         self.ocnli_ids = list(range(len(self.ocnli_data['s1'])))
         self.ocemotion_ids = list(range(len(self.ocemotion_data['s1'])))
@@ -416,30 +416,32 @@ class Data_generator():
         ocemotion_len = len(self.ocemotion_ids)
         tnews_len = len(self.tnews_ids)
         total_len = ocnli_len + ocemotion_len + tnews_len
-        
         if total_len == 0:
-            return None
+            return None # 如果取完，就返回None
         elif total_len > batchSize:
             if ocnli_len > 0:
-                ocnli_tmp_len = int((ocnli_len / total_len) * batchSize)
-                ocnli_cur = self.ocnli_ids[:ocnli_tmp_len]
-                self.ocnli_ids = self.ocnli_ids[ocnli_tmp_len:]
+                ocnli_tmp_len = int((ocnli_len / total_len) * batchSize) # 按照比例取用数据
+                ocnli_cur = self.ocnli_ids[:ocnli_tmp_len] # 取出数据
+                self.ocnli_ids = self.ocnli_ids[ocnli_tmp_len:] # 将取出的数据去掉
             if ocemotion_len > 0:
-                ocemotion_tmp_len = int((ocemotion_len / total_len) * batchSize)
+                ocemotion_tmp_len = int((ocemotion_len / total_len) * batchSize) # 同上
                 ocemotion_cur = self.ocemotion_ids[:ocemotion_tmp_len]
                 self.ocemotion_ids = self.ocemotion_ids[ocemotion_tmp_len:]
             if tnews_len > 0:
-                tnews_tmp_len = batchSize - len(ocnli_cur) - len(ocemotion_cur)
+                tnews_tmp_len = batchSize - len(ocnli_cur) - len(ocemotion_cur) # 同上
                 tnews_cur = self.tnews_ids[:tnews_tmp_len]
                 self.tnews_ids = self.tnews_ids[tnews_tmp_len:]
-        else:
+        else: # 如果不足一个batch_size,就将剩下所有的数据取出
             ocnli_cur = self.ocnli_ids
             self.ocnli_ids = []
             ocemotion_cur = self.ocemotion_ids
             self.ocemotion_ids = []
             tnews_cur = self.tnews_ids
             self.tnews_ids = []
+        # 找到语句的最长长度
         max_len = self._get_max_total_len(ocnli_cur, ocemotion_cur, tnews_cur)
+        # 采用self.tokenizer对预料进行分词，分词结果放在input_ids，token_type_ids，attention_mask
+        # 是ocnli_gold，ocemotion_gold，tnews_gold是标签
         input_ids = []
         token_type_ids = []
         attention_mask = []
@@ -464,6 +466,7 @@ class Data_generator():
             token_type_ids.append(flower['token_type_ids'])
             attention_mask.append(flower['attention_mask'])
             tnews_gold = torch.tensor([self.tnews_data['label'][idx] for idx in tnews_cur]).to(self.device)
+        #   
         st = 0
         ed = len(ocnli_cur)
         ocnli_tensor = torch.tensor([i for i in range(st, ed)]).to(self.device)
