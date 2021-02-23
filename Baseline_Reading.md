@@ -362,17 +362,18 @@ from transformers import BertTokenizer
 
 class Data_generator():
     def __init__(self, ocnli_dict, ocemotion_dict, tnews_dict, label_dict, device, tokenizer, max_len=512):
-        self.max_len = max_len
-        self.tokenizer = tokenizer
-        self.device = device
-        self.label2idx = dict()
-        self.idx2label = dict()
-        for key in ['TNEWS', 'OCNLI', 'OCEMOTION']:
+        self.max_len = max_len # 每个句子最长的长度
+        self.tokenizer = tokenizer # 分词器
+        self.device = device # 计算设备
+        self.label2idx = dict() # 字典 标签：索引
+        self.idx2label = dict() # 字典 索引：标签
+        for key in ['TNEWS', 'OCNLI', 'OCEMOTION']: # 利用label_dict构建三个数据集的label index的字典
             self.label2idx[key] = dict()
             self.idx2label[key] = dict()
             for i, e in enumerate(label_dict[key]):
                 self.label2idx[key][e] = i
                 self.idx2label[key][i] = e
+        # 将ocnli_data的数据转化为字典self.ocnli_data{'s1':[],'s2':[],'label':[]}
         self.ocnli_data = dict()
         self.ocnli_data['s1'] = []
         self.ocnli_data['s2'] = []
@@ -381,6 +382,7 @@ class Data_generator():
             self.ocnli_data['s1'].append(v['s1'])
             self.ocnli_data['s2'].append(v['s2'])
             self.ocnli_data['label'].append(self.label2idx['OCNLI'][v['label']])
+        # 将ocemotion_data的数据转化为字典self.ocnli_data{'s1':[],'s2':[],'label':[]}
         self.ocemotion_data = dict()
         self.ocemotion_data['s1'] = []
         self.ocemotion_data['label'] = []
