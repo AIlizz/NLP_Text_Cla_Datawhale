@@ -26,9 +26,9 @@
 &emsp;&emsp;|- total.csv<br>
 &emsp;&emsp;|- test.csv<br>
 &emsp;|- label.json # 运行generate_data.py之后，可以得到每个分类都有什么label<br>
-&emsp;|- label_weight.json # 运行generate_data.py之后，可以得到每个分类的每个label的权重？？？？？<br>
+&emsp;|- label_weight.json # 运行generate_data.py之后，可以得到每个分类的每个label的权重<br>
 |- calculate_loss.py # 计算loss<br>
-|- data_generator.py # 数据处理？？？<br>
+|- data_generator.py # 将csv的数据处理成json数据，方便模型调用<br>
 |- generate_data.py # 将原始数据的total切分为train和test,并将数据都转化为json数据<br>
 |- inference.py # 预测数据<br>
 |- net.py # 神经网络模型<br>
