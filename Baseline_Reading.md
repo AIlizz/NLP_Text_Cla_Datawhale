@@ -440,8 +440,8 @@ class Data_generator():
             self.tnews_ids = []
         # 找到语句的最长长度
         max_len = self._get_max_total_len(ocnli_cur, ocemotion_cur, tnews_cur)
-        # 采用self.tokenizer对预料进行分词，分词结果放在input_ids，token_type_ids，attention_mask
-        # 是ocnli_gold，ocemotion_gold，tnews_gold是标签
+        # 采用self.tokenizer对预料进行分词，三个数据集分词结果均放在input_ids，token_type_ids，attention_mask
+        # ocnli_gold，ocemotion_gold，tnews_gold是标签
         input_ids = []
         token_type_ids = []
         attention_mask = []
@@ -466,7 +466,7 @@ class Data_generator():
             token_type_ids.append(flower['token_type_ids'])
             attention_mask.append(flower['attention_mask'])
             tnews_gold = torch.tensor([self.tnews_data['label'][idx] for idx in tnews_cur]).to(self.device)
-        #   
+        # 构造ocnli_tensor，ocemotion_tensor，tnews_tensor记录从数据集中取出来的数据的相对位置
         st = 0
         ed = len(ocnli_cur)
         ocnli_tensor = torch.tensor([i for i in range(st, ed)]).to(self.device)
@@ -476,9 +476,13 @@ class Data_generator():
         st += len(ocemotion_cur)
         ed += len(tnews_cur)
         tnews_tensor = torch.tensor([i for i in range(st, ed)]).to(self.device)
+        
+        # 将input_ids，token_type_ids，attention_mask数据按行合并
         input_ids = torch.cat(input_ids, axis=0).to(self.device)
         token_type_ids = torch.cat(token_type_ids, axis=0).to(self.device)
         attention_mask = torch.cat(attention_mask, axis=0).to(self.device)
+        
+        # 将input_ids，token_type_ids，attention_mask，ocnli_ids，ocemotion_ids，tnews_ids，ocnli_gold，ocemotion_gold，tnews_gold放在res字典中
         res = dict()
         res['input_ids'] = input_ids
         res['token_type_ids'] = token_type_ids
