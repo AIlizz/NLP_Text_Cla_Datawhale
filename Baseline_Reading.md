@@ -871,7 +871,7 @@ def inference(path, data_dict, model, tokenizer, idx2label, task_type, device='c
         return
     model.to(device, non_blocking=True)
     model.eval()
-    ids_list = [k for k, _ in data_dict.items()] # 将所有预料的ID提取出来
+    ids_list = [k for k, _ in data_dict.items()] # 将所有语料的ID提取出来
     next_start_ids = 0
     with torch.no_grad(): # 预测，不需要进行梯度计算，不需要进行反向传播
         with open(path, 'w') as f:
@@ -887,38 +887,45 @@ def inference(path, data_dict, model, tokenizer, idx2label, task_type, device='c
                 input_ids = flower['input_ids'].to(device, non_blocking=True)
                 token_type_ids = flower['token_type_ids'].to(device, non_blocking=True)
                 attention_mask = flower['attention_mask'].to(device, non_blocking=True)
+                # 初始化ocnli_ids，ocemotion_ids，tnews_ids
                 ocnli_ids = torch.tensor([]).to(device, non_blocking=True)
                 ocemotion_ids = torch.tensor([]).to(device, non_blocking=True)
                 tnews_ids = torch.tensor([]).to(device, non_blocking=True)
-                # 
+                # 针对不同的任务，填充相应的XXX_ids，其他XXX_ids不变
                 if task_type == 'ocnli':
                     ocnli_ids = torch.tensor([i for i in range(len(cur_ids_list))]).to(device, non_blocking=True)
                 elif task_type == 'ocemotion':
                     ocemotion_ids = torch.tensor([i for i in range(len(cur_ids_list))]).to(device, non_blocking=True)
                 else:
                     tnews_ids = torch.tensor([i for i in range(len(cur_ids_list))]).to(device, non_blocking=True)
-                # 
+                # 完成预测
                 ocnli_out, ocemotion_out, tnews_out = model(input_ids, ocnli_ids, ocemotion_ids, tnews_ids, token_type_ids, attention_mask)
+                # 完成从pred到label的预测
                 if task_type == 'ocnli':
                     pred = torch.argmax(ocnli_out, axis=1)
                 elif task_type == 'ocemotion':
                     pred = torch.argmax(ocemotion_out, axis=1)
                 else:
                     pred = torch.argmax(tnews_out, axis=1)
+                # 将index转化为label的转化
                 pred_final = [idx2label[e] for e in np.array(pred.cpu()).tolist()]
                 #torch.cuda.empty_cache()
-                for i, idx in enumerate(cur_ids_list):
+                for i, idx in enumerate(cur_ids_list): # 依次取出当前预测句子的idx
+                    # 打印结果
                     if print_result:
                         print_str = '[ ' + task_type + ' : ' + 'sentence one: ' + data_dict[idx]['s1']
                         if task_type == 'ocnli':
                             print_str += '; sentence two: ' + data_dict[idx]['s2']
                         print_str += '; result: ' + pred_final[i] + ' ]'
                         print(print_str)
+                    # 保存结果{id:label}
                     single_result_dict = dict()
                     single_result_dict['id'] = idx
                     single_result_dict['label'] = pred_final[i]
                     f.write(json.dumps(single_result_dict, ensure_ascii=False))
-                    if not (next_start_ids >= len(ids_list) and i == len(cur_ids_list) - 1):
+                    # 最后一个语料不需要换行
+                    if not (next_start_ids >= len(ids_list) and i == len(cur_ids_list) - 1): 
+                        # next_start_ids >= len(ids_list) 最后一轮batch; i == len(cur_ids_list) - 1 一个batch最后一个语料
                         f.write('\n')
                         
 if __name__ == '__main__':
