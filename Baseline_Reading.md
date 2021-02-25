@@ -124,9 +124,9 @@ self.bert = bert_model
         self.atten_layer = nn.Linear(768, 16) # attention层是全连接
         self.softmax_d1 = nn.Softmax(dim=1) # Softmax层
         self.dropout = nn.Dropout(0.2) # Dropout层
-        self.OCNLI_layer = nn.Linear(768, 16 * 3) # bert输出之后，接全连接，输出为16*3，共3个类别，16什么意思？
-        self.OCEMOTION_layer = nn.Linear(768, 16 * 7) # bert输出之后，接全连接，输出为16*7，共7个类别，16什么意思？
-        self.TNEWS_layer = nn.Linear(768, 16 * 15) # bert输出之后，接全连接，输出为16*15，共15个类别，16什么意思？
+        self.OCNLI_layer = nn.Linear(768, 16 * 3) # bert输出之后，接全连接，输出为16*3，共3个类别，16是batch_size
+        self.OCEMOTION_layer = nn.Linear(768, 16 * 7) # bert输出之后，接全连接，输出为16*7，共7个类别，16是batch_size
+        self.TNEWS_layer = nn.Linear(768, 16 * 15) # bert输出之后，接全连接，输出为16*15，共15个类别，16是batch_size
 
     def forward(self, input_ids, ocnli_ids, ocemotion_ids, tnews_ids, token_type_ids=None, attention_mask=None):
         '''
