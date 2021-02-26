@@ -124,9 +124,9 @@ self.bert = bert_model
         self.atten_layer = nn.Linear(768, 16) # attention层是全连接
         self.softmax_d1 = nn.Softmax(dim=1) # Softmax层
         self.dropout = nn.Dropout(0.2) # Dropout层
-        self.OCNLI_layer = nn.Linear(768, 16 * 3) # bert输出之后，接全连接，输出为16*3，共3个类别，16是batch_size
-        self.OCEMOTION_layer = nn.Linear(768, 16 * 7) # bert输出之后，接全连接，输出为16*7，共7个类别，16是batch_size
-        self.TNEWS_layer = nn.Linear(768, 16 * 15) # bert输出之后，接全连接，输出为16*15，共15个类别，16是batch_size
+        self.OCNLI_layer = nn.Linear(768, 16 * 3) # bert输出之后，接全连接，输出为16*3，共3个类别，16是hidden size
+        self.OCEMOTION_layer = nn.Linear(768, 16 * 7) # bert输出之后，接全连接，输出为16*7，共7个类别，16是hidden size
+        self.TNEWS_layer = nn.Linear(768, 16 * 15) # bert输出之后，接全连接，输出为16*15，共15个类别，16是hidden size
 
     def forward(self, input_ids, ocnli_ids, ocemotion_ids, tnews_ids, token_type_ids=None, attention_mask=None):
         '''
@@ -136,10 +136,10 @@ self.bert = bert_model
         '''
         cls_emb = self.bert(input_ids=input_ids, token_type_ids=token_type_ids, attention_mask=attention_mask)[0][:, 0, :].squeeze(1)
         if ocnli_ids.size()[0] > 0:
-            attention_score = self.atten_layer(cls_emb[ocnli_ids, :])
-            attention_score = self.dropout(self.softmax_d1(attention_score).unsqueeze(1))
-            ocnli_value = self.OCNLI_layer(cls_emb[ocnli_ids, :]).contiguous().view(-1, 16, 3)
-            ocnli_out = torch.matmul(attention_score, ocnli_value).squeeze(1)
+            attention_score = self.atten_layer(cls_emb[ocnli_ids, :]) # [batch_size_ocnli,16]
+            attention_score = self.dropout(self.softmax_d1(attention_score).unsqueeze(1)) # [batch_size_ocnli,1,16]
+            ocnli_value = self.OCNLI_layer(cls_emb[ocnli_ids, :]).contiguous().view(-1, 16, 3) # [batch_size_ocnli,16*3] → [batch_size_ocnli,16，3] 
+            ocnli_out = torch.matmul(attention_score, ocnli_value).squeeze(1) # [batch_size_ocnli,1,16] * [batch_size_ocnli,16，3] = [batch_size_ocnli,3]
         else:
             ocnli_out = None
         if ocemotion_ids.size()[0] > 0:
