@@ -135,11 +135,14 @@ self.bert = bert_model
         这边可以大改
         '''
         cls_emb = self.bert(input_ids=input_ids, token_type_ids=token_type_ids, attention_mask=attention_mask)[0][:, 0, :].squeeze(1)
+        # bert的输出经过[0][:, 0, :]处理，得到[batch_size, 1，768]取出，然后.squeeze(1)，即删除第二维度上维度为1的维度，[batch_size, 768]
+        # bert的详解，可见https://blog.csdn.net/jiaowoshouzi/article/details/89073944
         if ocnli_ids.size()[0] > 0:
-            attention_score = self.atten_layer(cls_emb[ocnli_ids, :]) # [batch_size_ocnli,16]
-            attention_score = self.dropout(self.softmax_d1(attention_score).unsqueeze(1)) # [batch_size_ocnli,1,16]
-            ocnli_value = self.OCNLI_layer(cls_emb[ocnli_ids, :]).contiguous().view(-1, 16, 3) # [batch_size_ocnli,16*3] → [batch_size_ocnli,16，3] 
-            ocnli_out = torch.matmul(attention_score, ocnli_value).squeeze(1) # [batch_size_ocnli,1,16] * [batch_size_ocnli,16，3] = [batch_size_ocnli,3]
+            attention_score = self.atten_layer(cls_emb[ocnli_ids, :]) # [seq_len * batch_size_ocnli,16]
+            attention_score = self.dropout(self.softmax_d1(attention_score).unsqueeze(1)) # [seq_len * batch_size_ocnli,1,16]
+            ocnli_value = self.OCNLI_layer(cls_emb[ocnli_ids, :]).contiguous().view(-1, 16, 3) # [seq_len * batch_size_ocnli,16*3] → [seq_len * batch_size_ocnli,16，3] 
+            ocnli_out = torch.matmul(attention_score, ocnli_value).squeeze(1) 
+            # [seq_len * batch_size_ocnli,1,16] * [seq_len * batch_size_ocnli,16，3] = [seq_len * batch_size_ocnli,3]
         else:
             ocnli_out = None
         if ocemotion_ids.size()[0] > 0:
